@@ -42,6 +42,8 @@ Android, in addition:
   (`%ANDROID_HOME%\ndk\<version>`)
 - Rust targets:
   `rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android`
+- Windows **Developer Mode** (Settings → System → For developers). The Tauri CLI symlinks the built Rust library
+  into the Android project, and Windows only allows that with Developer Mode on.
 
 See <https://tauri.app/start/prerequisites/> for macOS, Linux and iOS.
 
@@ -58,8 +60,12 @@ Android:
 ```bash
 pnpm tauri android init     # once: generates src-tauri/gen/android
 pnpm tauri android dev      # run on a connected phone (USB debugging on) or an emulator
-pnpm tauri android build --apk
+pnpm tauri android build --apk --debug --target aarch64   # installable debug APK for 64-bit ARM phones
 ```
+
+The debug APK ends up in `src-tauri/gen/android/app/build/outputs/apk/universal/debug/`. Release builds
+(`pnpm tauri android build`) must be signed before they can be installed; see
+<https://tauri.app/distribute/sign/android/>.
 
 `pnpm dev` alone opens the UI in a normal browser with a fake in-memory backend (`src/lib/dev-mock.ts`), which is
 handy for design work. A key containing `full` acts as a full-access key there; a subject containing `fail` simulates a

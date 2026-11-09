@@ -1,0 +1,21 @@
+[package]
+name = "tauri-plugin-secure-store"
+version = "0.1.0"
+authors = ["Gamshik"]
+description = "Store small secrets in the platform's secure storage (Keystore, Keychain, Credential Manager, Secret Service)"
+edition = "2024"
+rust-version = "1.90"
+publish = false
+links = "tauri-plugin-secure-store"
+
+[dependencies]
+tauri = { version = "2" }
+serde = { version = "1", features = ["derive"] }
+thiserror = "2"
+
+# Desktop and iOS go through the keyring crate. Android has its own Kotlin implementation (android/).
+[target.'cfg(not(target_os = "android"))'.dependencies]
+keyring = { version = "3", features = ["windows-native", "apple-native", "sync-secret-service"] }
+
+[build-dependencies]
+tauri-plugin = { version = "2", features = ["build"] }

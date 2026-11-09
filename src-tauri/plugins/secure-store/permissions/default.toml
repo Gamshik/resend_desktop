@@ -1,0 +1,3 @@
+[default]
+description = "The plugin exposes no webview commands; secrets are only reachable from Rust."
+permissions = []

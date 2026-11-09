@@ -16,17 +16,17 @@ pub enum AppError {
     RateLimited,
     #[error("Network error: {0}")]
     Network(String),
-    #[error("Credential store error: {0}")]
-    Keyring(String),
+    #[error("Secure storage error: {0}")]
+    SecureStore(String),
     #[error("Database error: {0}")]
     Db(#[from] rusqlite::Error),
     #[error("{0}")]
     Invalid(String),
 }
 
-impl From<keyring::Error> for AppError {
-    fn from(e: keyring::Error) -> Self {
-        AppError::Keyring(e.to_string())
+impl From<tauri_plugin_secure_store::Error> for AppError {
+    fn from(e: tauri_plugin_secure_store::Error) -> Self {
+        AppError::SecureStore(e.to_string())
     }
 }
 

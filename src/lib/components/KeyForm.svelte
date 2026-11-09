@@ -56,8 +56,8 @@
     </button>
   </div>
   <p class="hint">
-    The key is checked with Resend, then stored in your system credential store (Credential Manager on Windows, Keychain on macOS). It never
-    leaves this computer except to talk to Resend.
+    The key is checked with Resend, then stored in your device's secure storage (Android Keystore, Windows Credential Manager or the Apple Keychain). It never
+    leaves this device except to talk to Resend.
   </p>
   {#if error}<div class="notice error">{error}</div>{/if}
 </form>

@@ -1,37 +1,26 @@
-//! The API key lives only in the OS credential store and in Rust memory.
+//! The API key lives only in platform secure storage (see the `secure-store` plugin) and in Rust memory.
 //! It is never returned to the webview; the UI only ever sees a masked form.
 
 use crate::error::{AppError, AppResult};
-use keyring::Entry;
+use tauri::{AppHandle, Runtime};
+use tauri_plugin_secure_store::SecureStoreExt;
 
-const SERVICE: &str = "com.gamshik.resenddesktop";
-const ACCOUNT: &str = "resend-api-key";
+const ENTRY: &str = "resend-api-key";
 
-fn entry() -> AppResult<Entry> {
-    Ok(Entry::new(SERVICE, ACCOUNT)?)
+pub fn get<R: Runtime>(app: &AppHandle<R>) -> AppResult<Option<String>> {
+    Ok(app.secure_store().get(ENTRY)?)
 }
 
-pub fn get() -> AppResult<Option<String>> {
-    match entry()?.get_password() {
-        Ok(k) => Ok(Some(k)),
-        Err(keyring::Error::NoEntry) => Ok(None),
-        Err(e) => Err(e.into()),
-    }
+pub fn require<R: Runtime>(app: &AppHandle<R>) -> AppResult<String> {
+    get(app)?.ok_or(AppError::NoKey)
 }
 
-pub fn require() -> AppResult<String> {
-    get()?.ok_or(AppError::NoKey)
+pub fn set<R: Runtime>(app: &AppHandle<R>, key: &str) -> AppResult<()> {
+    Ok(app.secure_store().set(ENTRY, key)?)
 }
 
-pub fn set(key: &str) -> AppResult<()> {
-    Ok(entry()?.set_password(key)?)
-}
-
-pub fn delete() -> AppResult<()> {
-    match entry()?.delete_credential() {
-        Ok(()) | Err(keyring::Error::NoEntry) => Ok(()),
-        Err(e) => Err(e.into()),
-    }
+pub fn delete<R: Runtime>(app: &AppHandle<R>) -> AppResult<()> {
+    Ok(app.secure_store().delete(ENTRY)?)
 }
 
 pub fn validate_format(key: &str) -> AppResult<()> {

@@ -3020,7 +3020,6 @@ dependencies = [
 name = "resend-desktop"
 version = "0.1.0"
 dependencies = [
- "keyring",
  "reqwest 0.12.28",
  "rusqlite",
  "serde",
@@ -3028,6 +3027,7 @@ dependencies = [
  "tauri",
  "tauri-build",
  "tauri-plugin-opener",
+ "tauri-plugin-secure-store",
  "thiserror 2.0.21",
 ]
 
@@ -3877,6 +3877,17 @@ dependencies = [
  "url",
  "windows",
  "zbus",
+]
+
+[[package]]
+name = "tauri-plugin-secure-store"
+version = "0.1.0"
+dependencies = [
+ "keyring",
+ "serde",
+ "tauri",
+ "tauri-plugin",
+ "thiserror 2.0.21",
 ]
 
 [[package]]

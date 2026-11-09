@@ -9,7 +9,7 @@ use reqwest::Client;
 use rusqlite::Connection;
 use serde::{Deserialize, Serialize};
 use std::sync::Mutex;
-use tauri::State;
+use tauri::{AppHandle, State};
 
 pub struct AppState {
     pub db: Mutex<Connection>,
@@ -36,8 +36,8 @@ pub struct KeyStatus {
 }
 
 #[tauri::command]
-pub fn key_status(state: State<'_, AppState>) -> AppResult<KeyStatus> {
-    let key = keystore::get()?;
+pub fn key_status(app: AppHandle, state: State<'_, AppState>) -> AppResult<KeyStatus> {
+    let key = keystore::get(&app)?;
     let access = db::get_setting(&state.db(), "key_access")?;
     Ok(KeyStatus {
         saved: key.is_some(),
@@ -61,26 +61,26 @@ fn access_label(check: &KeyCheck) -> &'static str {
 
 /// Validates the key against Resend first, and only stores it if Resend accepts it.
 #[tauri::command]
-pub async fn save_key(state: State<'_, AppState>, key: String) -> AppResult<SaveKeyResult> {
+pub async fn save_key(app: AppHandle, state: State<'_, AppState>, key: String) -> AppResult<SaveKeyResult> {
     let key = key.trim().to_owned();
     keystore::validate_format(&key)?;
     let check = resend::check_key(&state.http, &key).await?;
-    keystore::set(&key)?;
+    keystore::set(&app, &key)?;
     db::set_setting(&state.db(), "key_access", access_label(&check))?;
     Ok(SaveKeyResult { masked: keystore::mask(&key), check })
 }
 
 #[tauri::command]
-pub async fn check_key(state: State<'_, AppState>) -> AppResult<KeyCheck> {
-    let key = keystore::require()?;
+pub async fn check_key(app: AppHandle, state: State<'_, AppState>) -> AppResult<KeyCheck> {
+    let key = keystore::require(&app)?;
     let check = resend::check_key(&state.http, &key).await?;
     db::set_setting(&state.db(), "key_access", access_label(&check))?;
     Ok(check)
 }
 
 #[tauri::command]
-pub fn delete_key(state: State<'_, AppState>) -> AppResult<()> {
-    keystore::delete()?;
+pub fn delete_key(app: AppHandle, state: State<'_, AppState>) -> AppResult<()> {
+    keystore::delete(&app)?;
     state.db().execute("DELETE FROM settings WHERE key = 'key_access'", [])?;
     Ok(())
 }
@@ -119,7 +119,7 @@ fn non_empty(s: Option<String>) -> Option<String> {
 }
 
 #[tauri::command]
-pub async fn send_email(state: State<'_, AppState>, input: SendInput) -> AppResult<SendOutcome> {
+pub async fn send_email(app: AppHandle, state: State<'_, AppState>, input: SendInput) -> AppResult<SendOutcome> {
     let from = input.from.trim().to_owned();
     let to = clean(input.to);
     let cc = clean(input.cc);
@@ -149,7 +149,7 @@ pub async fn send_email(state: State<'_, AppState>, input: SendInput) -> AppResu
         return Err(AppError::Invalid("Attachments are larger than Resend's 40 MB limit.".into()));
     }
 
-    let key = keystore::require()?;
+    let key = keystore::require(&app)?;
     let req = SendRequest {
         from: &from,
         to: &to,

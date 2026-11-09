@@ -69,7 +69,7 @@
       <div class="key-row">
         <Icon name="key" />
         <code class="masked">{app.keyMasked}</code>
-        <span class="hint">Stored in your system credential store</span>
+        <span class="hint">Stored in secure system storage</span>
       </div>
 
       {#if app.keyAccess === "full"}

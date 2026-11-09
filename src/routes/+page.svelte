@@ -10,7 +10,13 @@
   let initError = $state<string | null>(null);
 
   $effect(() => {
-    app.init().catch((e) => (initError = errorText(e)));
+    (async () => {
+      // In a plain browser (`pnpm dev` without Tauri) swap in a fake backend for UI work.
+      if (import.meta.env.DEV && !("__TAURI_INTERNALS__" in window)) {
+        (await import("$lib/dev-mock")).installDevMock();
+      }
+      await app.init();
+    })().catch((e) => (initError = errorText(e)));
   });
 
   const nav: { view: View; label: string; icon: "send" | "history" | "settings" | "book"; needsKey: boolean }[] = [

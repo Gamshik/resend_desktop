@@ -1,156 +1,179 @@
 <script lang="ts">
-  import { invoke } from "@tauri-apps/api/core";
+  import { errorText } from "$lib/api";
+  import Compose from "$lib/components/Compose.svelte";
+  import Guide from "$lib/components/Guide.svelte";
+  import History from "$lib/components/History.svelte";
+  import Icon from "$lib/components/Icon.svelte";
+  import Settings from "$lib/components/Settings.svelte";
+  import { app, type View } from "$lib/state.svelte";
 
-  let name = $state("");
-  let greetMsg = $state("");
+  let initError = $state<string | null>(null);
 
-  async function greet(event: Event) {
-    event.preventDefault();
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    greetMsg = await invoke("greet", { name });
-  }
+  $effect(() => {
+    app.init().catch((e) => (initError = errorText(e)));
+  });
+
+  const nav: { view: View; label: string; icon: "send" | "history" | "settings" | "book"; needsKey: boolean }[] = [
+    { view: "compose", label: "Compose", icon: "send", needsKey: true },
+    { view: "history", label: "History", icon: "history", needsKey: false },
+    { view: "settings", label: "Settings", icon: "settings", needsKey: false },
+    { view: "guide", label: "Setup guide", icon: "book", needsKey: false },
+  ];
 </script>
 
-<main class="container">
-  <h1>Welcome to Tauri + Svelte</h1>
+<div class="shell">
+  <nav>
+    <div class="brand">
+      <span class="logo"><Icon name="mail" size={16} /></span>
+      <span>Resend Desktop</span>
+    </div>
 
-  <div class="row">
-    <a href="https://vite.dev" target="_blank">
-      <img src="/vite.svg" class="logo vite" alt="Vite Logo" />
-    </a>
-    <a href="https://tauri.app" target="_blank">
-      <img src="/tauri.svg" class="logo tauri" alt="Tauri Logo" />
-    </a>
-    <a href="https://svelte.dev" target="_blank">
-      <img src="/svelte.svg" class="logo svelte-kit" alt="SvelteKit Logo" />
-    </a>
-  </div>
-  <p>Click on the Tauri, Vite, and SvelteKit logos to learn more.</p>
+    <ul>
+      {#each nav as item (item.view)}
+        <li>
+          <button
+            class:active={app.view === item.view}
+            disabled={item.needsKey && !app.keySaved}
+            title={item.needsKey && !app.keySaved ? "Add an API key first" : undefined}
+            onclick={() => (app.view = item.view)}
+          >
+            <Icon name={item.icon} />
+            {item.label}
+          </button>
+        </li>
+      {/each}
+    </ul>
 
-  <form class="row" onsubmit={greet}>
-    <input id="greet-input" placeholder="Enter a name..." bind:value={name} />
-    <button type="submit">Greet</button>
-  </form>
-  <p>{greetMsg}</p>
-</main>
+    <div class="status">
+      {#if app.keySaved}
+        <span class="dot ok"></span>
+        <span>Key <code>{app.keyMasked}</code></span>
+      {:else if app.ready}
+        <span class="dot"></span>
+        <span>No API key</span>
+      {/if}
+    </div>
+  </nav>
+
+  <main>
+    {#if initError}
+      <div class="notice error boot">Couldn't start: {initError}</div>
+    {:else if !app.ready}
+      <div class="boot"><span class="spinner"></span></div>
+    {:else if app.view === "compose" && app.keySaved}
+      <Compose />
+    {:else if app.view === "history"}
+      <History />
+    {:else if app.view === "settings"}
+      <Settings />
+    {:else}
+      <Guide />
+    {/if}
+  </main>
+</div>
 
 <style>
-.logo.vite:hover {
-  filter: drop-shadow(0 0 2em #747bff);
-}
-
-.logo.svelte-kit:hover {
-  filter: drop-shadow(0 0 2em #ff3e00);
-}
-
-:root {
-  font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
-  font-size: 16px;
-  line-height: 24px;
-  font-weight: 400;
-
-  color: #0f0f0f;
-  background-color: #f6f6f6;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-text-size-adjust: 100%;
-}
-
-.container {
-  margin: 0;
-  padding-top: 10vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  text-align: center;
-}
-
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: 0.75s;
-}
-
-.logo.tauri:hover {
-  filter: drop-shadow(0 0 2em #24c8db);
-}
-
-.row {
-  display: flex;
-  justify-content: center;
-}
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-
-a:hover {
-  color: #535bf2;
-}
-
-h1 {
-  text-align: center;
-}
-
-input,
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  color: #0f0f0f;
-  background-color: #ffffff;
-  transition: border-color 0.25s;
-  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
-}
-
-button {
-  cursor: pointer;
-}
-
-button:hover {
-  border-color: #396cd8;
-}
-button:active {
-  border-color: #396cd8;
-  background-color: #e8e8e8;
-}
-
-input,
-button {
-  outline: none;
-}
-
-#greet-input {
-  margin-right: 5px;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    color: #f6f6f6;
-    background-color: #2f2f2f;
+  .shell {
+    display: grid;
+    grid-template-columns: 212px 1fr;
+    height: 100vh;
   }
-
-  a:hover {
-    color: #24c8db;
+  nav {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 16px 10px;
+    border-right: 1px solid var(--border);
+    background: var(--bg);
   }
-
-  input,
-  button {
-    color: #ffffff;
-    background-color: #0f0f0f98;
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-weight: 650;
+    padding: 4px 8px 16px;
   }
-  button:active {
-    background-color: #0f0f0f69;
+  .logo {
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    border-radius: 8px;
+    background: var(--text);
+    color: var(--bg);
   }
-}
-
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 2px;
+  }
+  nav button {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font: inherit;
+    font-weight: 500;
+    color: var(--text-2);
+    background: transparent;
+    border: 0;
+    border-radius: var(--radius-sm);
+    padding: 7px 10px;
+    cursor: pointer;
+    text-align: left;
+  }
+  nav button:hover:not(:disabled) {
+    background: var(--surface-2);
+    color: var(--text);
+  }
+  nav button.active {
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: var(--shadow);
+  }
+  nav button:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+  .status {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-3);
+    padding: 8px;
+  }
+  .status code {
+    font-size: 11px;
+  }
+  .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--text-3);
+    flex: none;
+  }
+  .dot.ok {
+    background: var(--ok);
+  }
+  main {
+    overflow-y: auto;
+    min-height: 0;
+  }
+  main:has(> :global(.layout)) {
+    overflow: hidden;
+  }
+  .boot {
+    display: grid;
+    place-items: center;
+    height: 100%;
+    color: var(--text-3);
+  }
+  .notice.boot {
+    height: auto;
+    margin: 32px;
+  }
 </style>

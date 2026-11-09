@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "resend-desktop",
+  "productName": "Resend Desktop",
   "version": "0.1.0",
   "identifier": "com.gamshik.resenddesktop",
   "build": {
@@ -12,13 +12,27 @@
   "app": {
     "windows": [
       {
-        "title": "resend-desktop",
-        "width": 800,
-        "height": 600
+        "title": "Resend Desktop",
+        "width": 1180,
+        "height": 780,
+        "minWidth": 860,
+        "minHeight": 560
       }
     ],
     "security": {
-      "csp": null
+      "csp": {
+        "default-src": "'self'",
+        "script-src": "'self'",
+        "style-src": "'self' 'unsafe-inline'",
+        "img-src": "'self' data: https:",
+        "font-src": "'self' data:",
+        "connect-src": "ipc: http://ipc.localhost",
+        "frame-src": "'self'",
+        "object-src": "'none'",
+        "base-uri": "'none'",
+        "form-action": "'none'"
+      },
+      "dangerousDisableAssetCspModification": ["style-src"]
     }
   },
   "bundle": {

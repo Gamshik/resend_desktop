@@ -171,4 +171,17 @@
   .saved .btn {
     margin-left: auto;
   }
+
+  @media (max-width: 720px) {
+    .page {
+      padding: 18px 12px 28px;
+    }
+    .steps > li {
+      padding: 16px 14px;
+      gap: 12px;
+    }
+    .saved {
+      flex-wrap: wrap;
+    }
+  }
 </style>

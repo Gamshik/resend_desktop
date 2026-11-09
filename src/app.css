@@ -297,3 +297,17 @@ code {
     transform: rotate(360deg);
   }
 }
+
+/* Touch screens: bigger tap targets, and 16px inputs so mobile browsers don't zoom on focus. */
+@media (pointer: coarse) {
+  .btn {
+    padding: 9px 16px;
+  }
+  .btn.sm {
+    padding: 7px 12px;
+  }
+  .input,
+  .textarea {
+    font-size: 16px;
+  }
+}

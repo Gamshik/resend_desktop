@@ -15,6 +15,8 @@
   let body = $state("");
   let files = $state<(Attachment & { size: number })[]>([]);
   let showCopies = $state(false);
+  /** On phones the HTML editor and preview share one pane; this picks which is shown. */
+  let htmlPane = $state<"edit" | "preview">("edit");
 
   let sending = $state(false);
   let error = $state<string | null>(null);
@@ -127,7 +129,7 @@
 <div class="page">
   <header>
     <h1>New email</h1>
-    <span class="hint">Ctrl + Enter to send</span>
+    <span class="hint only-wide">Ctrl + Enter to send</span>
   </header>
 
   {#if noVerifiedDomain}
@@ -194,6 +196,21 @@
           HTML
         </button>
       </div>
+      {#if mode === "html"}
+        <div class="seg only-narrow" role="tablist">
+          <button role="tab" aria-selected={htmlPane === "edit"} class:on={htmlPane === "edit"} onclick={() => (htmlPane = "edit")}>
+            Edit
+          </button>
+          <button
+            role="tab"
+            aria-selected={htmlPane === "preview"}
+            class:on={htmlPane === "preview"}
+            onclick={() => (htmlPane = "preview")}
+          >
+            Preview
+          </button>
+        </div>
+      {/if}
       <button class="btn ghost sm" onclick={() => fileInput?.click()}><Icon name="paperclip" /> Attach</button>
       <input type="file" multiple hidden bind:this={fileInput} onchange={(e) => addFiles(e.currentTarget.files)} />
     </div>
@@ -201,7 +218,7 @@
     {#if mode === "text"}
       <textarea class="textarea" bind:value={body} placeholder="Write your message…"></textarea>
     {:else}
-      <div class="split">
+      <div class="split" data-pane={htmlPane}>
         <textarea class="textarea mono" bind:value={body} placeholder="<h1>Hello</h1>&#10;<p>…</p>"></textarea>
         <EmailPreview html={body} />
       </div>
@@ -246,6 +263,7 @@
     margin: 0 auto;
     padding: 28px 32px 40px;
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: 14px;
   }
   header {
@@ -256,6 +274,7 @@
   .form {
     padding: 20px 22px;
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: 14px;
   }
   .field-row {
@@ -367,5 +386,46 @@
     cursor: pointer;
     padding: 0;
     margin-left: 4px;
+  }
+  .only-narrow {
+    display: none;
+  }
+
+  @media (max-width: 720px) {
+    .page {
+      padding: 16px 12px 24px;
+      gap: 12px;
+    }
+    .form {
+      padding: 14px;
+      gap: 12px;
+    }
+    .field-row {
+      grid-template-columns: 1fr;
+      gap: 5px;
+    }
+    .body-head {
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .only-wide {
+      display: none;
+    }
+    .only-narrow {
+      display: inline-flex;
+      margin-left: auto;
+    }
+    .split {
+      grid-template-columns: 1fr;
+    }
+    .split[data-pane="edit"] > :global(iframe),
+    .split[data-pane="preview"] > textarea {
+      display: none;
+    }
+    .actions .btn {
+      flex: 1;
+      justify-content: center;
+      padding: 11px;
+    }
   }
 </style>

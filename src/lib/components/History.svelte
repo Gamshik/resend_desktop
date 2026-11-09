@@ -1,6 +1,6 @@
 <script lang="ts">
   import { api, errorText, type HistoryItem } from "$lib/api";
-  import { app } from "$lib/state.svelte";
+  import { app, narrow } from "$lib/state.svelte";
   import EmailPreview from "./EmailPreview.svelte";
   import Icon from "./Icon.svelte";
 
@@ -25,7 +25,8 @@
     error = null;
     try {
       items = await api.listHistory(500);
-      if (selectedId === null && items.length) selectedId = items[0].id;
+      // Side-by-side layout opens the newest email; on phones the list comes first.
+      if (selectedId === null && items.length && !narrow.current) selectedId = items[0].id;
     } catch (e) {
       error = errorText(e);
     } finally {
@@ -59,7 +60,7 @@
   });
 </script>
 
-<div class="layout">
+<div class="layout" class:has-selection={selected !== null}>
   <aside class="list">
     <div class="list-head">
       <h1>History</h1>
@@ -109,6 +110,7 @@
 
   <section class="detail">
     {#if selected}
+      <button class="btn ghost sm back" onclick={() => (selectedId = null)}>← All emails</button>
       <div class="detail-head">
         <h2>{selected.subject}</h2>
         <div class="tools">
@@ -307,5 +309,40 @@
   }
   .empty.big {
     margin: auto;
+  }
+  .back {
+    display: none;
+  }
+
+  /* Phones: list and detail are separate screens. */
+  @media (max-width: 720px) {
+    .layout {
+      grid-template-columns: 1fr;
+    }
+    .list {
+      border-right: 0;
+    }
+    .layout.has-selection .list,
+    .layout:not(.has-selection) .detail {
+      display: none;
+    }
+    .list-head {
+      padding: 16px 12px 10px;
+    }
+    .detail {
+      padding: 12px 14px 20px;
+      gap: 12px;
+    }
+    .back {
+      display: inline-flex;
+      align-self: start;
+      margin-left: -8px;
+    }
+    .detail-head {
+      flex-direction: column;
+    }
+    .detail-head h2 {
+      font-size: 17px;
+    }
   }
 </style>

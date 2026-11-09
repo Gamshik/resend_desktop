@@ -204,4 +204,18 @@
   b {
     font-weight: 600;
   }
+
+  @media (max-width: 720px) {
+    .page {
+      padding: 16px 12px 24px;
+      gap: 12px;
+    }
+    section {
+      padding: 16px 14px;
+    }
+    .key-row {
+      flex-wrap: wrap;
+      gap: 6px 10px;
+    }
+  }
 </style>

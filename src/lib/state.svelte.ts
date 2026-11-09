@@ -1,4 +1,8 @@
+import { MediaQuery } from "svelte/reactivity";
 import { api, type Access, type Domain, type HistoryItem, type KeyCheck } from "./api";
+
+/** Phone-sized layout. Keep in sync with the 720px breakpoint used in component styles. */
+export const narrow = new MediaQuery("max-width: 720px");
 
 export type View = "compose" | "history" | "settings" | "guide";
 

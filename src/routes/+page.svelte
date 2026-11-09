@@ -19,11 +19,17 @@
     })().catch((e) => (initError = errorText(e)));
   });
 
-  const nav: { view: View; label: string; icon: "send" | "history" | "settings" | "book"; needsKey: boolean }[] = [
-    { view: "compose", label: "Compose", icon: "send", needsKey: true },
-    { view: "history", label: "History", icon: "history", needsKey: false },
-    { view: "settings", label: "Settings", icon: "settings", needsKey: false },
-    { view: "guide", label: "Setup guide", icon: "book", needsKey: false },
+  const nav: {
+    view: View;
+    label: string;
+    short: string;
+    icon: "send" | "history" | "settings" | "book";
+    needsKey: boolean;
+  }[] = [
+    { view: "compose", label: "Compose", short: "Compose", icon: "send", needsKey: true },
+    { view: "history", label: "History", short: "History", icon: "history", needsKey: false },
+    { view: "settings", label: "Settings", short: "Settings", icon: "settings", needsKey: false },
+    { view: "guide", label: "Setup guide", short: "Guide", icon: "book", needsKey: false },
   ];
 </script>
 
@@ -44,7 +50,8 @@
             onclick={() => (app.view = item.view)}
           >
             <Icon name={item.icon} />
-            {item.label}
+            <span class="long">{item.label}</span>
+            <span class="short">{item.short}</span>
           </button>
         </li>
       {/each}
@@ -83,6 +90,10 @@
     display: grid;
     grid-template-columns: 212px 1fr;
     height: 100vh;
+    height: 100dvh;
+  }
+  .short {
+    display: none;
   }
   nav {
     display: flex;
@@ -181,5 +192,51 @@
   .notice.boot {
     height: auto;
     margin: 32px;
+  }
+
+  /* Phones: sidebar becomes a bottom tab bar. */
+  @media (max-width: 720px) {
+    .shell {
+      grid-template-columns: 1fr;
+      grid-template-rows: 1fr auto;
+    }
+    main {
+      grid-row: 1;
+      padding-top: env(safe-area-inset-top);
+    }
+    nav {
+      grid-row: 2;
+      flex-direction: row;
+      padding: 4px 6px calc(4px + env(safe-area-inset-bottom));
+      border-right: 0;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+    }
+    .brand,
+    .status,
+    .long {
+      display: none;
+    }
+    .short {
+      display: inline;
+    }
+    ul {
+      flex: 1;
+      grid-auto-flow: column;
+      grid-auto-columns: 1fr;
+    }
+    nav button {
+      flex-direction: column;
+      gap: 3px;
+      padding: 7px 4px;
+      font-size: 11px;
+      font-weight: 600;
+      text-align: center;
+    }
+    nav button.active {
+      background: transparent;
+      box-shadow: none;
+      color: var(--accent);
+    }
   }
 </style>

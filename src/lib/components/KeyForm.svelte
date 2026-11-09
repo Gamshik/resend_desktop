@@ -71,6 +71,15 @@
     display: flex;
     gap: 8px;
   }
+  @media (max-width: 720px) {
+    .row {
+      flex-direction: column;
+    }
+    .row .btn {
+      justify-content: center;
+      padding: 10px;
+    }
+  }
   .field {
     position: relative;
     flex: 1;
